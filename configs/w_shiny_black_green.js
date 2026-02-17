@@ -4,7 +4,7 @@ export const MODEL_CONFIG = {
 
     frame: {
 		baseColor: [0.01, 0.01, 0.01],
-		roughness: 0.35,
+		roughness: 0.15,
 		metalness: 0.1
 	},
 
