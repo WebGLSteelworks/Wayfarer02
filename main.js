@@ -479,7 +479,7 @@ controls.maxDistance = 1.2;
 // ─────────────────────────────────────────────
 // LIGHTING
 // ─────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xffffff, 0.0));
+scene.add(new THREE.AmbientLight(0xffffff, 5.0));
 const dirLight01 = new THREE.DirectionalLight(0xffffff, 15.0);
 const dirLight02 = new THREE.DirectionalLight(0xffffff, 15.0);
 dirLight01.position.set(5, 10, 7);
@@ -550,7 +550,7 @@ new RGBELoader().load('./studio.hdr', (hdr) => {
 
   scene.environment = processedEnvMap;
   scene.environmentRotation = new THREE.Euler(0, Math.PI * 1.25, 0);
-  scene.environmentIntensity = 2.0;
+  scene.environmentIntensity = 3.0;
 
   hdr.dispose();
   renderTarget.dispose();

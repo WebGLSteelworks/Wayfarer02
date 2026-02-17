@@ -25,7 +25,7 @@ export const MODEL_CONFIG = {
 		  },
 
 	logo: {
-	  texture: './textures/Standard_alpha_clear.jpg',
+	  texture: './textures/Standard_alpha_polar.jpg',
 	  emissiveIntensity: 0.6
 	},
 
