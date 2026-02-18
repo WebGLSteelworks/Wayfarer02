@@ -13,6 +13,8 @@ import { MODEL_CONFIG as SHINY_BLACK_GREEN } from './configs/w_shiny_black_green
 import { MODEL_CONFIG as MATTE_BLACK_GGRAPH } from './configs/w_matte_black_ggraph.js';
 import { MODEL_CONFIG as SHINY_BLACK_CGREEN } from './configs/w_shiny_black_cgreen.js';
 import { MODEL_CONFIG as MATTE_BLACK_CGREY } from './configs/w_matte_black_cgrey.js';
+import { MODEL_CONFIG as CLEAR_SAPPHIRE } from './configs/w_clear_sapphire.js';
+import { MODEL_CONFIG as BLUE_JEANS } from './configs/w_jeans_blue.js';
 
 // ─────────────────────────────────────────────
 // VAR
@@ -87,6 +89,8 @@ makeModelButton('Shiny Black Green', SHINY_BLACK_GREEN);
 makeModelButton('Matte Black Gradient Graphite', MATTE_BLACK_GGRAPH);
 makeModelButton('Shiny Black Clear to Green', SHINY_BLACK_CGREEN);
 makeModelButton('Matte Black Clear to Grey', MATTE_BLACK_CGREY);
+makeModelButton('Clear Sapphire', CLEAR_SAPPHIRE);
+makeModelButton('Blue Jeans', BLUE_JEANS);
 
 // ─────────────────────────────
 // POSTPRODUCTION FOR MORE CONTRAST
@@ -152,13 +156,6 @@ function loadModel(config) {
   glassAnim.timer = 0;
   Object.keys(cameraTargets).forEach(k => delete cameraTargets[k]);
 
-	// 🔹 Base material frame + arms
-	const frameMaterial = new THREE.MeshStandardMaterial({
-	  color: new THREE.Color(...config.frame.baseColor),
-	  roughness: config.frame.roughness,
-	  metalness: config.frame.metalness
-	});
-
   loader.load(config.glb, (gltf) => {
 
     currentModel = gltf.scene;
@@ -172,6 +169,7 @@ function loadModel(config) {
 
     // ───── load cameras
     gltf.scene.traverse(obj => {
+			
       if (obj.isCamera) {
 
 		  const pos = obj.getWorldPosition(new THREE.Vector3());
@@ -198,74 +196,9 @@ function loadModel(config) {
 		(obj.name.includes('Arm') && !obj.name.includes('Text'))
 	  )
 	) {
-	  obj.material = frameMaterial;
+	  //obj.material = frameMaterial;
 	}
-
-	if (obj.isMesh && obj.name.includes('Arm_Text')) {
-
-	  const tex = textureLoader.load(config.armsText.overlay);
-	  tex.flipY = false;
-	  tex.colorSpace = THREE.SRGBColorSpace;
-
-	  const mat = new THREE.MeshStandardMaterial({
-		color: new THREE.Color(...config.frame.baseColor),
-		roughness: config.frame.roughness,
-		metalness: config.frame.metalness
-	  });
-	  
-	  mat.userData.textColorUniform = null;
-
-	mat.onBeforeCompile = (shader) => {
-
-	  const textColor = new THREE.Color(...config.armsText.color);
-
-	  shader.uniforms.overlayMap = { value: tex };
-	  shader.uniforms.textColor = { value: textColor };
-	  
-	  mat.userData.textColorUniform = shader.uniforms.textColor;
-
-	  // Vertex
-	  shader.vertexShader = `
-		varying vec2 vCustomUv;
-	  ` + shader.vertexShader;
-
-	  shader.vertexShader = shader.vertexShader.replace(
-		'#include <uv_vertex>',
-		`
-		  #include <uv_vertex>
-		  vCustomUv = uv;
-		`
-	  );
-
-	  // Fragment
-	  shader.fragmentShader = `
-		uniform sampler2D overlayMap;
-		uniform vec3 textColor;
-		varying vec2 vCustomUv;
-	  ` + shader.fragmentShader;
-
-	  shader.fragmentShader = shader.fragmentShader.replace(
-		'#include <color_fragment>',
-		`
-		  #include <color_fragment>
-
-		  vec4 overlay = texture2D(overlayMap, vCustomUv);
-		  float mask = overlay.r;
-
-		  diffuseColor.rgb = mix(
-			diffuseColor.rgb,
-			textColor,
-			mask
-		  );
-		`
-	  );
-	};
-
-	  obj.material = mat;
-	  armsTextMeshes.push(obj);
-	}
-
-	
+		
       // ───── glass
       if (obj.isMesh && obj.material?.name?.toLowerCase().includes('glass')) {
 
@@ -309,6 +242,7 @@ function loadModel(config) {
 
     // load starting camera
     smoothSwitchCamera(config.startCamera);
+	applyConfig(config); 
   });
 }
 
@@ -317,6 +251,118 @@ function loadModel(config) {
 // APPLY CONFIG SWAPPING MODELS 
 // ─────────────────────────────
 function applyConfig(config) {
+	
+	let frameMaterial;
+	let armTextMaterial;
+
+	if (config.frame.trans) {
+
+	  armTextMaterial = new THREE.MeshPhysicalMaterial({
+		color: new THREE.Color(...config.frame.baseColor),
+		roughness: config.frame.roughness,
+		metalness: config.frame.metalness,
+		transparent: true,
+		opacity: config.frame.opacity ?? 0.6,
+		depthWrite: false,
+		envMapIntensity: 5.2,
+		clearcoat: 5.0,
+		clearcoatRoughness: config.frame.roughness
+	  });
+
+	} else {
+
+	  armTextMaterial = new THREE.MeshStandardMaterial({
+		color: new THREE.Color(...config.frame.baseColor),
+		roughness: config.frame.roughness,
+		metalness: config.frame.metalness,
+		envMapIntensity: 2.2
+	  });
+
+	}	
+	
+	// ───── OVERLAY SHADER FOR ARM_TEXT
+	const overlayTexture = textureLoader.load(config.armsText.overlay);
+	overlayTexture.flipY = false;
+	overlayTexture.colorSpace = THREE.SRGBColorSpace;
+
+	armTextMaterial.onBeforeCompile = (shader) => {
+
+	  shader.uniforms.overlayMap = { value: overlayTexture };
+	  shader.uniforms.textColor = {
+		value: new THREE.Color(...config.armsText.color)
+	  };
+
+	  // ───── VERTEX SHADER ─────
+	  shader.vertexShader =
+		`
+		varying vec2 vCustomUv;
+		` + shader.vertexShader;
+
+	  shader.vertexShader = shader.vertexShader.replace(
+		'#include <uv_vertex>',
+		`
+		  #include <uv_vertex>
+		  vCustomUv = uv;
+		`
+	  );
+
+	  // ───── FRAGMENT SHADER ─────
+	  shader.fragmentShader =
+		`
+		uniform sampler2D overlayMap;
+		uniform vec3 textColor;
+		varying vec2 vCustomUv;
+		` + shader.fragmentShader;
+
+	  shader.fragmentShader = shader.fragmentShader.replace(
+		'#include <color_fragment>',
+		`
+		  #include <color_fragment>
+
+		  vec4 overlay = texture2D(overlayMap, vCustomUv);
+		  float mask = overlay.a;
+
+		  diffuseColor.rgb = mix(
+			diffuseColor.rgb,
+			textColor,
+			mask
+		  );
+
+		  diffuseColor.a = max(diffuseColor.a, mask);
+		`
+	  );
+	};
+
+	armTextMaterial.needsUpdate = true;
+
+	if (config.frame.trans) {
+
+		frameMaterial = new THREE.MeshPhysicalMaterial({
+			color: new THREE.Color(...config.frame.baseColor),
+
+			roughness: config.frame.roughness,
+			metalness: 0.0,                     // 🔥 fijo a 0
+
+			transparent: true,
+			opacity: config.frame.opacity ?? 0.8,
+			depthWrite: false,
+
+			envMapIntensity: 3.5,               // 🔥 más reflejo
+			clearcoat: 1.0,
+			clearcoatRoughness: config.frame.roughness,
+
+			reflectivity: config.frame.reflectivity ?? 1.0
+		});
+
+	} else {
+
+	  frameMaterial = new THREE.MeshStandardMaterial({
+		color: new THREE.Color(...config.frame.baseColor),
+		roughness: config.frame.roughness,
+		metalness: config.frame.metalness
+	  });
+
+	}	
 
   glassAnimationEnabled = config.glass.animate === true;
   glassAnimateCamera = config.glass.animateCamera || null;
@@ -331,17 +377,91 @@ function applyConfig(config) {
 
     if (!obj.isMesh) return;
 
-    // FRAME + ARMS
-    if (
-      obj.name.includes('Frame') ||
-      (obj.name.includes('Arm') && !obj.name.includes('Text'))
-    ) {
-      obj.material.color.set(...config.frame.baseColor);
-      obj.material.roughness = config.frame.roughness;
-      obj.material.metalness = config.frame.metalness;
-    }
+	if (obj.name.includes('Arm_Text')) {
+	  obj.material = armTextMaterial;
+	  return;
+	}
 
-	// 🔹 GLASS
+	if (
+	  obj.isMesh &&
+	  (
+		obj.name.includes('Frame') ||
+		(obj.name.includes('Arm') && !obj.name.includes('Text'))
+	  )
+	) {
+	  obj.material = frameMaterial;
+	}
+
+
+
+  });
+
+
+	// 🔹 FAKE INTERNAL MATERIAL
+	if (config.fake?.texture) {
+
+	  const fakeTexture = textureLoader.load(config.fake.texture);
+	  fakeTexture.flipY = false;
+	  fakeTexture.colorSpace = THREE.SRGBColorSpace;
+
+	  currentModel.traverse(obj => {
+
+		if (obj.isMesh && obj.material?.name?.toLowerCase() === 'fake') {
+
+		  const fakeMaterial = new THREE.MeshStandardMaterial({
+			map: fakeTexture,
+			metalness: 0.0,
+			roughness: 1.0
+		  });
+
+		  fakeMaterial.name = 'fake' ;
+
+		  obj.material = fakeMaterial;
+
+		}
+
+	  });
+	}
+
+
+
+
+	// 🔹 ARM_TEXT (actualizar propiedades dinámicas)
+	armsTextMeshes.forEach(mesh => {
+
+	  // actualizar color base del material
+	  mesh.material.color.set(...config.frame.baseColor);
+
+	  // actualizar propiedades físicas
+	  mesh.material.roughness = config.frame.roughness;
+	  mesh.material.metalness = config.frame.metalness;
+	  
+	  mesh.material.envMapIntensity = 2.2;
+	  
+	  if (config.frame.trans) {
+
+		  mesh.material.transparent = true;
+		  mesh.material.opacity = config.frame.opacity ?? 0.6;
+		  mesh.material.depthWrite = false;
+
+		} else {
+
+		  mesh.material.transparent = false;
+		  mesh.material.opacity = 1.0;
+		  mesh.material.depthWrite = true;
+
+		}
+
+	  // actualizar color del texto (uniform del shader)
+	  if (mesh.material.userData.textColorUniform) {
+		mesh.material.userData.textColorUniform.value.set(...config.armsText.color);
+	  }
+
+	});
+
+
+  
+  	// 🔹 GLASS
 	glassMaterials.forEach(mat => {
 
 	  mat.color.set(...config.glass.color);
@@ -354,23 +474,6 @@ function applyConfig(config) {
 
 	  mat.needsUpdate = true;
 	});
-	
-	// 🔹 ARM_TEXT  ← AQUI EXACTAMENTE
-	armsTextMeshes.forEach(mesh => {
-
-	  // 🔹 Color base de la patilla
-	  mesh.material.color.set(...config.frame.baseColor);
-
-	  mesh.material.roughness = config.frame.roughness;
-	  mesh.material.metalness = config.frame.metalness;
-
-	  // 🔹 Color del texto (uniform shader)
-	  if (mesh.material.userData.textColorUniform) {
-		mesh.material.userData.textColorUniform.value.set(...config.armsText.color);
-	  }
-
-	});
-  });
 
 }
 
