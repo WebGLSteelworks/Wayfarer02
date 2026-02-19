@@ -17,7 +17,7 @@ import { MODEL_CONFIG as CLEAR_SAPPHIRE } from './configs/w_clear_sapphire.js';
 import { MODEL_CONFIG as BLUE_JEANS } from './configs/w_jeans_blue.js';
 
 // ─────────────────────────────────────────────
-// VAR
+// GLOBAL VAR
 // ─────────────────────────────────────────────
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf2f2f2); 
@@ -341,13 +341,13 @@ function applyConfig(config) {
 			color: new THREE.Color(...config.frame.baseColor),
 
 			roughness: config.frame.roughness,
-			metalness: 0.0,                     // 🔥 fijo a 0
+			metalness: 0.0,                     
 
 			transparent: true,
 			opacity: config.frame.opacity ?? 0.8,
 			depthWrite: true,
 
-			envMapIntensity: 3.5,               // 🔥 más reflejo
+			envMapIntensity: 3.5,              
 			clearcoat: 1.0,
 			clearcoatRoughness: config.frame.roughness,
 
@@ -372,7 +372,7 @@ function applyConfig(config) {
   logoTexture.flipY = false;
   logoTexture.colorSpace = THREE.SRGBColorSpace;
 
-  // 🔹 FRAME (actualizar materiales existentes)
+  // 🔹 FRAME (material update)
   currentModel.traverse(obj => {
 
     if (!obj.isMesh) return;
@@ -426,13 +426,13 @@ function applyConfig(config) {
 
 
 
-	// 🔹 ARM_TEXT (actualizar propiedades dinámicas)
+	// 🔹 ARM_TEXT (update)
 	armsTextMeshes.forEach(mesh => {
 
-	  // actualizar color base del material
+	  // base color update
 	  mesh.material.color.set(...config.frame.baseColor);
 
-	  // actualizar propiedades físicas
+	  // properties update
 	  mesh.material.roughness = config.frame.roughness;
 	  mesh.material.metalness = config.frame.metalness;
 	  
@@ -452,7 +452,7 @@ function applyConfig(config) {
 
 		}
 
-	  // actualizar color del texto (uniform del shader)
+	  // text color update
 	  if (mesh.material.userData.textColorUniform) {
 		mesh.material.userData.textColorUniform.value.set(...config.armsText.color);
 	  }
@@ -597,10 +597,10 @@ const pmrem = new THREE.PMREMGenerator(renderer);
 
 new RGBELoader().load('./studio.hdr', (hdr) => {
 
-  // 🔹 Creamos una escena temporal para procesar el HDR
+  
   const tempScene = new THREE.Scene();
 
-  const saturation = 0.0; // 0 = gris total | 1 = original
+  const saturation = 0.0; // remove color from HDRI
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
