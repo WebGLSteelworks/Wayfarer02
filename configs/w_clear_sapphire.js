@@ -14,7 +14,7 @@ export const MODEL_CONFIG = {
 
 	armsText: {
 		overlay: './textures/Temples_wayfarer_standard_2k.png',
-		color: [0.5, 0.5, 0.5]
+		color: [0.1, 0.1, 0.1]
 	},
 
 	glass: {
