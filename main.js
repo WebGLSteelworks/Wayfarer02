@@ -263,7 +263,7 @@ function applyConfig(config) {
 		metalness: config.frame.metalness,
 		transparent: true,
 		opacity: config.frame.opacity ?? 0.6,
-		depthWrite: false,
+		depthWrite: true,
 		envMapIntensity: 5.2,
 		clearcoat: 5.0,
 		clearcoatRoughness: config.frame.roughness
@@ -345,7 +345,7 @@ function applyConfig(config) {
 
 			transparent: true,
 			opacity: config.frame.opacity ?? 0.8,
-			depthWrite: false,
+			depthWrite: true,
 
 			envMapIntensity: 3.5,               // 🔥 más reflejo
 			clearcoat: 1.0,
