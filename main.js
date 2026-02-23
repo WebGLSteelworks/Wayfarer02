@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/+esm';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/controls/OrbitControls.js/+esm';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/loaders/GLTFLoader.js/+esm';
 import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/loaders/RGBELoader.js/+esm';
+import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js/+esm';
 
 import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/EffectComposer.js/+esm';
 import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/RenderPass.js/+esm';
@@ -540,6 +541,10 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.physicallyCorrectLights = true;
+
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
 document.body.appendChild(renderer.domElement);
 
 // ─────────────────────────────
@@ -595,9 +600,10 @@ scene.add(dirLight02);
 // ─────────────────────────────────────────────
 const pmrem = new THREE.PMREMGenerator(renderer);
 
-new RGBELoader().load('./studio.hdr', (hdr) => {
+new EXRLoader().load('./studio.exr', (hdr) => {
+	
+  hdr.mapping = THREE.EquirectangularReflectionMapping;
 
-  
   const tempScene = new THREE.Scene();
 
   const saturation = 0.0; // remove color from HDRI
