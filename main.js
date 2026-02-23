@@ -636,7 +636,7 @@ new EXRLoader().load('./studio.exr', (hdr) => {
 
   scene.environment = processedEnvMap;
   scene.environmentRotation = new THREE.Euler(0, Math.PI * 0.5, 0);
-  scene.environmentIntensity = 3.5;
+  scene.environmentIntensity = 5.5;
 
   hdr.dispose();
   renderTarget.dispose();
