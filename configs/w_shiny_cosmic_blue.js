@@ -4,7 +4,7 @@ export const MODEL_CONFIG = {
   glb: './models/Standard_Wayfarer.glb',
 
     frame: {
-		baseColor: [0.012, 0.015, 0.03],
+		baseColor: [0.024, 0.032, 0.078],
 		roughness: 0.15,
 		metalness: 0.1
 	},

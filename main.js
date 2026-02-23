@@ -4,10 +4,6 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/
 import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/loaders/RGBELoader.js/+esm';
 import { EXRLoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/loaders/EXRLoader.js/+esm';
 
-import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/EffectComposer.js/+esm';
-import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/RenderPass.js/+esm';
-import { ShaderPass } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/postprocessing/ShaderPass.js/+esm';
-
 import { MODEL_CONFIG as SHINY_COSMIC_BLUE } from './configs/w_shiny_cosmic_blue.js';
 import { MODEL_CONFIG as MATTE_BLACK_CLEAR } from './configs/w_matte_black_clear.js';
 import { MODEL_CONFIG as SHINY_BLACK_GREEN } from './configs/w_shiny_black_green.js';
@@ -543,29 +539,10 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.physicallyCorrectLights = true;
 
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 0.25;
 
 document.body.appendChild(renderer.domElement);
 
-// ─────────────────────────────
-// COMPOSER ANTIALIASING
-// ─────────────────────────────
-
-const renderTarget = new THREE.WebGLRenderTarget(
-  window.innerWidth,
-  window.innerHeight,
-  {
-    samples: 4 
-  }
-);
-
-const composer = new EffectComposer(renderer, renderTarget);
-
-composer.addPass(new RenderPass(scene, camera));
-
-const contrastPass = new ShaderPass(ContrastShader);
-contrastPass.uniforms.contrast.value = 1.0;
-composer.addPass(contrastPass);
 
 // ─────────────────────────────────────────────
 // CONTROLS
@@ -587,9 +564,9 @@ controls.maxDistance = 1.2;
 // ─────────────────────────────────────────────
 // LIGHTING
 // ─────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xffffff, 5.0));
-const dirLight01 = new THREE.DirectionalLight(0xffffff, 15.0);
-const dirLight02 = new THREE.DirectionalLight(0xffffff, 15.0);
+scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+const dirLight01 = new THREE.DirectionalLight(0xffffff, 2.0);
+const dirLight02 = new THREE.DirectionalLight(0xffffff, 2.0);
 dirLight01.position.set(5, 10, 7);
 dirLight02.position.set(-10, 10, 7);
 scene.add(dirLight01);
@@ -659,7 +636,7 @@ new EXRLoader().load('./studio.exr', (hdr) => {
 
   scene.environment = processedEnvMap;
   scene.environmentRotation = new THREE.Euler(0, Math.PI * 0.5, 0);
-  scene.environmentIntensity = 3.0;
+  scene.environmentIntensity = 3.5;
 
   hdr.dispose();
   renderTarget.dispose();
@@ -858,7 +835,8 @@ function animate(time) {
   // ─────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────
-  composer.render();
+  //composer.render();
+  renderer.render(scene, camera);
 }
 
 
