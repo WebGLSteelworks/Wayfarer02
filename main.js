@@ -564,9 +564,9 @@ controls.maxDistance = 1.2;
 // ─────────────────────────────────────────────
 // LIGHTING
 // ─────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xffffff, 1.5));
-const dirLight01 = new THREE.DirectionalLight(0xffffff, 2.0);
-const dirLight02 = new THREE.DirectionalLight(0xffffff, 2.0);
+scene.add(new THREE.AmbientLight(0xffffff, 0.0));
+const dirLight01 = new THREE.DirectionalLight(0xffffff, 0.0);
+const dirLight02 = new THREE.DirectionalLight(0xffffff, 0.0);
 dirLight01.position.set(5, 10, 7);
 dirLight02.position.set(-10, 10, 7);
 scene.add(dirLight01);
@@ -588,7 +588,8 @@ new EXRLoader().load('./studio.exr', (hdr) => {
   const material = new THREE.ShaderMaterial({
     uniforms: {
       tMap: { value: hdr },
-      saturation: { value: saturation }
+	  saturation: { value: saturation },
+	  contrast: { value: 2.15 } 
     },
     vertexShader: `
       varying vec2 vUv;
@@ -600,6 +601,7 @@ new EXRLoader().load('./studio.exr', (hdr) => {
     fragmentShader: `
       uniform sampler2D tMap;
       uniform float saturation;
+	  uniform float contrast;
       varying vec2 vUv;
 
       void main() {
@@ -609,6 +611,8 @@ new EXRLoader().load('./studio.exr', (hdr) => {
         vec3 grey = vec3(luminance);
 
         color.rgb = mix(grey, color.rgb, saturation);
+		
+		color.rgb = (color.rgb - 0.5) * contrast + 0.5;
 
         gl_FragColor = color;
       }
@@ -636,7 +640,7 @@ new EXRLoader().load('./studio.exr', (hdr) => {
 
   scene.environment = processedEnvMap;
   scene.environmentRotation = new THREE.Euler(0, Math.PI * 0.5, 0);
-  scene.environmentIntensity = 5.5;
+  scene.environmentIntensity = 7.5;
 
   hdr.dispose();
   renderTarget.dispose();
