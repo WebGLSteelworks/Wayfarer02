@@ -658,7 +658,7 @@ new EXRLoader().load('./studio.exr', (hdr) => {
   const processedEnvMap = pmrem.fromEquirectangular(renderTarget.texture).texture;
 
   scene.environment = processedEnvMap;
-  scene.environmentRotation = new THREE.Euler(0, Math.PI * 1.25, 0);
+  scene.environmentRotation = new THREE.Euler(0, Math.PI * 0.5, 0);
   scene.environmentIntensity = 3.0;
 
   hdr.dispose();
